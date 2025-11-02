@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<!-- saved from url=(0091)file:///C:/Users/user/Downloads/Telegram%20Desktop/deepseek_html_20251030_8540b0%20(1).html -->
+<html lang="zh-TW"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數學打地鼠</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', '微軟正黑體', sans-serif;
+        }
+
+        body {
+            background-color: #8BC34A; /* 淺綠色背景 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle, #a5d6a7 10%, transparent 11%),
+                              radial-gradient(circle at bottom left, #a5d6a7 5%, transparent 6%),
+                              radial-gradient(circle at bottom right, #a5d6a7 5%, transparent 6%);
+            background-size: 50px 50px;
+            background-position: 0 0, 20px 20px, 20px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #795548; /* 棕色標題 */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #FFEB3B; /* 黃色陰影 */
+            font-size: 2.8rem;
+            background-color: rgba(255, 235, 59, 0.8);
+            padding: 10px 20px;
+            border-radius: 15px;
+            display: inline-block;
+            border: 4px dashed #795548;
+        }
+
+        .game-info {
+            background-color: #795548; /* 棕色 */
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .question-display {
+            background-color: #FFEB3B; /* 黃色 */
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 2.2rem; /* 增大題目字體 */
+            font-weight: bold;
+            color: #795548; /* 棕色 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 3px solid #795548;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .moles-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px; /* 增加間距 */
+            margin-bottom: 30px;
+        }
+
+        .mole-hole {
+            position: relative;
+            height: 140px; /* 增加高度 */
+            background-color: #795548; /* 棕色 */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 3px solid #5D4037;
+        }
+
+        .mole {
+            position: absolute;
+            bottom: -80px;
+            transition: bottom 0.3s ease;
+            font-size: 3.5rem; /* 增大地鼠圖標 */
+            z-index: 1;
+        }
+
+        .mole.active {
+            bottom: 15px;
+        }
+
+        .mole-number {
+            position: absolute;
+            top: 5px;
+            font-size: 2.5rem; /* 大幅增大數字字體 */
+            font-weight: bold;
+            color: #4CAF50; /* 深綠色 */
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.95);
+            width: 60px; /* 增大容器 */
+            height: 60px; /* 增大容器 */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #4CAF50;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #4CAF50; /* 深綠色 */
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.3rem; /* 增大按鈕字體 */
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #388E3C;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-btn {
+            background-color: #FFC107; /* 黃色 */
+            color: #795548; /* 棕色 */
+        }
+
+        .difficulty-btn.active {
+            background-color: #FF9800;
+            font-weight: bold;
+        }
+
+        .result {
+            background-color: #FFC107; /* 黃色 */
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border: 3px solid #795548;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 1.3rem; /* 增大結果字體 */
+        }
+
+        .champion {
+            background-color: #4CAF50; /* 深綠色 */
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 100%;
+            border: 3px solid #795548;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-size: 1.2rem; /* 增大冠軍記錄字體 */
+        }
+
+        .game-instructions {
+            background-color: rgba(255, 235, 59, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #795548;
+            font-size: 1.3rem; /* 增大說明字體 */
+            border: 2px dashed #795548;
+        }
+
+        @media (max-width: 600px) {
+            .moles-container {
+                gap: 15px;
+            }
+            
+            .mole-hole {
+                height: 120px;
+            }
+            
+            .mole {
+                font-size: 3rem;
+            }
+            
+            .mole-number {
+                font-size: 2rem;
+                width: 50px;
+                height: 50px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .question-display {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>數學打地鼠 🐹</h1>
+        
+        <div class="game-instructions">
+            <p>選擇題目數量，點擊開始遊戲，找出正確答案的地鼠！</p>
+        </div>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn active" data-questions="5">5題</button>
+            <button class="difficulty-btn" data-questions="10">10題</button>
+            <button class="difficulty-btn" data-questions="15">15題</button>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">開始遊戲</button>
+        </div>
+        
+        <div class="game-info">
+            <div>時間: <span id="time">0</span>秒</div>
+            <div>得分: <span id="score">0</span></div>
+            <div>題目: <span id="current">0</span>/<span id="total">5</span></div>
+        </div>
+        
+        <div class="question-display" id="question">點擊開始遊戲</div>
+        
+        <div class="moles-container" id="moles-container"><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div><div class="mole-hole">
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                </div></div>
+        
+        <div class="result" id="result">
+            <h2>遊戲結束!</h2>
+            <p>你的得分: <span id="final-score">0</span></p>
+            <p>用時: <span id="final-time">0</span>秒</p>
+            <button id="restart-btn">再玩一次</button>
+        </div>
+        
+        <div class="champion" id="champion">
+            <h3>🏆 冠軍記錄 🏆</h3>
+            <p id="champion-info">暫無記錄</p>
+        </div>
+    </div>
+
+    <script>
+        // 題目庫 - 使用您提供的66道題目
+        const questionBank = [
+            // 加法題目 (1-30)
+            { question: "5 + 6 = ?", answer: 11 },
+            { question: "5 + 7 = ?", answer: 12 },
+            { question: "5 + 8 = ?", answer: 13 },
+            { question: "5 + 9 = ?", answer: 14 },
+            { question: "6 + 5 = ?", answer: 11 },
+            { question: "6 + 6 = ?", answer: 12 },
+            { question: "6 + 7 = ?", answer: 13 },
+            { question: "6 + 8 = ?", answer: 14 },
+            { question: "6 + 9 = ?", answer: 15 },
+            { question: "7 + 4 = ?", answer: 11 },
+            { question: "7 + 5 = ?", answer: 12 },
+            { question: "7 + 6 = ?", answer: 13 },
+            { question: "7 + 7 = ?", answer: 14 },
+            { question: "7 + 8 = ?", answer: 15 },
+            { question: "7 + 9 = ?", answer: 16 },
+            { question: "8 + 3 = ?", answer: 11 },
+            { question: "8 + 4 = ?", answer: 12 },
+            { question: "8 + 5 = ?", answer: 13 },
+            { question: "8 + 6 = ?", answer: 14 },
+            { question: "8 + 7 = ?", answer: 15 },
+            { question: "8 + 8 = ?", answer: 16 },
+            { question: "8 + 9 = ?", answer: 17 },
+            { question: "9 + 2 = ?", answer: 11 },
+            { question: "9 + 3 = ?", answer: 12 },
+            { question: "9 + 4 = ?", answer: 13 },
+            { question: "9 + 5 = ?", answer: 14 },
+            { question: "9 + 6 = ?", answer: 15 },
+            { question: "9 + 7 = ?", answer: 16 },
+            { question: "9 + 8 = ?", answer: 17 },
+            { question: "9 + 9 = ?", answer: 18 },
+            
+            // 減法題目 (31-66)
+            { question: "18 - 9 = ?", answer: 9 },
+            { question: "17 - 9 = ?", answer: 8 },
+            { question: "17 - 8 = ?", answer: 9 },
+            { question: "16 - 9 = ?", answer: 7 },
+            { question: "16 - 8 = ?", answer: 8 },
+            { question: "16 - 7 = ?", answer: 9 },
+            { question: "15 - 9 = ?", answer: 6 },
+            { question: "15 - 8 = ?", answer: 7 },
+            { question: "15 - 7 = ?", answer: 8 },
+            { question: "15 - 6 = ?", answer: 9 },
+            { question: "14 - 9 = ?", answer: 5 },
+            { question: "14 - 8 = ?", answer: 6 },
+            { question: "14 - 7 = ?", answer: 7 },
+            { question: "14 - 6 = ?", answer: 8 },
+            { question: "14 - 5 = ?", answer: 9 },
+            { question: "13 - 9 = ?", answer: 4 },
+            { question: "13 - 8 = ?", answer: 5 },
+            { question: "13 - 7 = ?", answer: 6 },
+            { question: "13 - 6 = ?", answer: 7 },
+            { question: "13 - 5 = ?", answer: 8 },
+            { question: "13 - 4 = ?", answer: 9 },
+            { question: "12 - 9 = ?", answer: 3 },
+            { question: "12 - 8 = ?", answer: 4 },
+            { question: "12 - 7 = ?", answer: 5 },
+            { question: "12 - 6 = ?", answer: 6 },
+            { question: "12 - 5 = ?", answer: 7 },
+            { question: "12 - 4 = ?", answer: 8 },
+            { question: "12 - 3 = ?", answer: 9 },
+            { question: "11 - 9 = ?", answer: 2 },
+            { question: "11 - 8 = ?", answer: 3 },
+            { question: "11 - 7 = ?", answer: 4 },
+            { question: "11 - 6 = ?", answer: 5 },
+            { question: "11 - 5 = ?", answer: 6 },
+            { question: "11 - 4 = ?", answer: 7 },
+            { question: "11 - 3 = ?", answer: 8 },
+            { question: "11 - 2 = ?", answer: 9 }
+        ];
+
+        // 遊戲變數
+        let score = 0;
+        let currentQuestion = 0;
+        let totalQuestions = 5;
+        let time = 0;
+        let timer;
+        let isPlaying = false;
+        let questions = [];
+        let currentCorrectAnswer;
+        let championScore = localStorage.getItem('championScore') || 0;
+        let championTime = localStorage.getItem('championTime') || 999;
+
+        // DOM元素
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const timeDisplay = document.getElementById('time');
+        const scoreDisplay = document.getElementById('score');
+        const currentDisplay = document.getElementById('current');
+        const totalDisplay = document.getElementById('total');
+        const questionDisplay = document.getElementById('question');
+        const molesContainer = document.getElementById('moles-container');
+        const resultDisplay = document.getElementById('result');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const finalTimeDisplay = document.getElementById('final-time');
+        const championInfo = document.getElementById('champion-info');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+
+        // 初始化地鼠洞
+        function initMoles() {
+            molesContainer.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const moleHole = document.createElement('div');
+                moleHole.className = 'mole-hole';
+                moleHole.innerHTML = `
+                    <div class="mole">🐹</div>
+                    <div class="mole-number"></div>
+                `;
+                moleHole.addEventListener('click', () => checkAnswer(moleHole));
+                molesContainer.appendChild(moleHole);
+            }
+        }
+
+        // 從題目庫中隨機選擇題目
+        function getRandomQuestions(count) {
+            // 複製題目庫
+            const shuffled = [...questionBank];
+            // 洗牌算法隨機排序
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            // 返回前count個題目
+            return shuffled.slice(0, count);
+        }
+
+        // 開始遊戲
+        function startGame() {
+            if (isPlaying) return;
+            
+            // 重置遊戲狀態
+            score = 0;
+            currentQuestion = 0;
+            time = 0;
+            isPlaying = true;
+            
+            // 更新顯示
+            scoreDisplay.textContent = score;
+            currentDisplay.textContent = currentQuestion;
+            totalDisplay.textContent = totalQuestions;
+            timeDisplay.textContent = time;
+            
+            // 從題目庫中隨機選擇題目
+            questions = getRandomQuestions(totalQuestions);
+            
+            // 隱藏結果，顯示遊戲區域
+            resultDisplay.style.display = 'none';
+            
+            // 開始計時
+            timer = setInterval(() => {
+                time++;
+                timeDisplay.textContent = time;
+            }, 1000);
+            
+            // 顯示第一題
+            showNextQuestion();
+            
+            // 更新按鈕狀態
+            startBtn.disabled = true;
+            
+            // 更新難度按鈕狀態
+            difficultyBtns.forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        // 顯示下一題
+        function showNextQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                endGame();
+                return;
+            }
+            
+            const question = questions[currentQuestion];
+            questionDisplay.textContent = question.question;
+            currentCorrectAnswer = question.answer;
+            
+            // 隨機選擇4個洞顯示地鼠
+            const moleHoles = document.querySelectorAll('.mole-hole');
+            const selectedHoles = [];
+            
+            // 重置所有地鼠洞
+            moleHoles.forEach(hole => {
+                hole.querySelector('.mole').classList.remove('active');
+                hole.querySelector('.mole-number').textContent = '';
+                hole.style.backgroundColor = '#795548';
+            });
+            
+            // 隨機選擇4個洞
+            while (selectedHoles.length < 4) {
+                const randomIndex = Math.floor(Math.random() * 9);
+                if (!selectedHoles.includes(randomIndex)) {
+                    selectedHoles.push(randomIndex);
+                }
+            }
+            
+            // 在其中一個洞顯示正確答案
+            const correctHoleIndex = Math.floor(Math.random() * 4);
+            moleHoles[selectedHoles[correctHoleIndex]].querySelector('.mole-number').textContent = currentCorrectAnswer;
+            
+            // 在其他三個洞顯示錯誤答案
+            let wrongAnswers = [];
+            while (wrongAnswers.length < 3) {
+                // 生成一個與正確答案不同的錯誤答案
+                let wrongAnswer;
+                do {
+                    wrongAnswer = Math.floor(Math.random() * 19); // 0-18
+                } while (wrongAnswer === currentCorrectAnswer || wrongAnswers.includes(wrongAnswer));
+                
+                wrongAnswers.push(wrongAnswer);
+            }
+            
+            // 將錯誤答案分配到其他三個洞
+            let wrongIndex = 0;
+            for (let i = 0; i < 4; i++) {
+                if (i !== correctHoleIndex) {
+                    moleHoles[selectedHoles[i]].querySelector('.mole-number').textContent = wrongAnswers[wrongIndex];
+                    wrongIndex++;
+                }
+            }
+            
+            // 顯示地鼠
+            selectedHoles.forEach(index => {
+                moleHoles[index].querySelector('.mole').classList.add('active');
+            });
+            
+            currentQuestion++;
+            currentDisplay.textContent = currentQuestion;
+        }
+
+        // 檢查答案
+        function checkAnswer(moleHole) {
+            if (!isPlaying) return;
+            
+            const selectedNumber = parseInt(moleHole.querySelector('.mole-number').textContent);
+            
+            if (selectedNumber === currentCorrectAnswer) {
+                // 正確答案
+                score++;
+                scoreDisplay.textContent = score;
+                
+                // 顯示正確反饋
+                moleHole.style.backgroundColor = '#4CAF50';
+                setTimeout(() => {
+                    moleHole.style.backgroundColor = '#795548';
+                    showNextQuestion();
+                }, 500);
+            } else {
+                // 錯誤答案
+                moleHole.style.backgroundColor = '#F44336';
+                setTimeout(() => {
+                    moleHole.style.backgroundColor = '#795548';
+                    showNextQuestion();
+                }, 500);
+            }
+        }
+
+        // 結束遊戲
+        function endGame() {
+            isPlaying = false;
+            clearInterval(timer);
+            
+            // 隱藏所有地鼠
+            document.querySelectorAll('.mole').forEach(mole => {
+                mole.classList.remove('active');
+            });
+            
+            // 顯示結果
+            resultDisplay.style.display = 'block';
+            finalScoreDisplay.textContent = score;
+            finalTimeDisplay.textContent = time;
+            
+            // 檢查是否為冠軍
+            let isChampion = false;
+            if (score > championScore || (score == championScore && time < championTime)) {
+                isChampion = true;
+                championScore = score;
+                championTime = time;
+                localStorage.setItem('championScore', championScore);
+                localStorage.setItem('championTime', championTime);
+                
+                // 顯示冠軍動畫效果
+                championInfo.innerHTML = `🏆 新紀錄！ 🏆<br>得分: ${championScore} | 用時: ${championTime}秒`;
+                document.getElementById('champion').style.animation = 'pulse 1s infinite';
+                
+                // 添加CSS動畫
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.05); }
+                        100% { transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+            } else {
+                updateChampionInfo();
+            }
+            
+            // 啟用開始按鈕
+            startBtn.disabled = false;
+            
+            // 啟用難度按鈕
+            difficultyBtns.forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        // 更新冠軍信息
+        function updateChampionInfo() {
+            if (championScore > 0) {
+                championInfo.textContent = `得分: ${championScore} | 用時: ${championTime}秒`;
+            } else {
+                championInfo.textContent = '暫無記錄';
+            }
+        }
+
+        // 設置難度
+        function setDifficulty(questionsCount) {
+            totalQuestions = questionsCount;
+            totalDisplay.textContent = totalQuestions;
+            
+            // 更新按鈕狀態
+            difficultyBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.dataset.questions) === questionsCount) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // 事件監聽
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', () => {
+            resultDisplay.style.display = 'none';
+            startGame();
+        });
+
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setDifficulty(parseInt(btn.dataset.questions));
+            });
+        });
+
+        // 初始化
+        initMoles();
+        updateChampionInfo();
+    </script>
+
+</body></html>
