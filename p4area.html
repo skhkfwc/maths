@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <title>互動鋪磚實驗室 - 理解排列邏輯</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+            --bg: #fdfdfd;
+        }
+        body { font-family: 'PingFang HK', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* 題目顯示區 */
+        .question-box { background: #fff; border-left: 10px solid var(--primary); padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; max-width: 800px; width: 100%; font-size: 20px; line-height: 1.6; }
+        .dynamic-val { color: var(--accent); font-weight: bold; border-bottom: 2px solid var(--accent); padding: 0 5px; }
+
+        .setup-panel { background: #f0f2f5; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: center; }
+        .input-group { display: flex; align-items: center; gap: 8px; }
+        label { font-weight: bold; font-size: 14px; }
+        input { width: 60px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .main-layout { display: flex; gap: 50px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+        
+        /* 左邊：零件區 */
+        .source-section { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        #tile-source { 
+            cursor: grab; 
+            background: var(--primary); 
+            border: 2px solid #2980b9;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-size: 14px;
+        }
+        /* 顯示邊長標籤 */
+        .dim-label { position: absolute; font-size: 11px; color: #333; white-space: nowrap; }
+        .dim-w { top: -18px; width: 100%; text-align: center; }
+        .dim-h { right: -35px; top: 50%; transform: translateY(-50%); }
+
+        /* 右邊：工作區 */
+        .workspace { position: relative; background: #eaeff2; border: 2px solid #95a5a6; border-radius: 4px; }
+        .placed-tile { position: absolute; background: rgba(52, 152, 219, 0.85); border: 0.5px solid rgba(255,255,255,0.5); box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); font-size: 10px; }
+
+        .controls { margin-top: 20px; display: flex; gap: 15px; }
+        button { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-update { background: #34495e; color: white; }
+        .btn-fill { background: var(--secondary); color: white; }
+        .btn-reset { background: #95a5a6; color: white; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        #explanation { max-width: 800px; margin-top: 30px; padding: 25px; background: #fff; border-radius: 12px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .highlight { color: #d35400; font-weight: bold; font-size: 1.3em; }
+    </style>
+</head>
+<body>
+
+<div class="question-box" id="questionBox">
+    載入中...
+</div>
+
+<div class="setup-panel">
+    <div class="input-group">
+        <label>大圖形 長</label><input type="number" id="bigL" value="84" oninput="updateUI()">
+        <label>闊</label><input type="number" id="bigW" value="20" oninput="updateUI()">
+    </div>
+    <div style="border-right: 1px solid #ccc; height: 25px; margin: 0 10px;"></div>
+    <div class="input-group">
+        <label>小方塊 長</label><input type="number" id="smallL" value="4" oninput="updateUI()">
+        <label>闊</label><input type="number" id="smallW" value="4" oninput="updateUI()">
+    </div>
+    <button class="btn-update" onclick="initWorkspace()">設定並開始</button>
+</div>
+
+<div class="main-layout">
+    <div class="source-section">
+        <h3>1. 拖曳方塊</h3>
+        <div id="tile-source" draggable="true">
+            <span class="dim-label dim-w" id="srcLabelW"></span>
+            <span class="dim-label dim-h" id="srcLabelH"></span>
+            方塊
+        </div>
+        <p style="font-size: 14px; color: #7f8c8d; margin-top: 20px;">請將方塊排入灰色區域</p>
+    </div>
+
+    <div class="source-section">
+        <h3>2. 鋪砌空間</h3>
+        <div id="workspace" class="workspace"></div>
+        <div class="controls">
+            <button class="btn-fill" onclick="autoFill()">🚀 自動鋪滿</button>
+            <button class="btn-reset" onclick="initWorkspace()">🔄 重設畫布</button>
+        </div>
+    </div>
+</div>
+
+<div id="explanation"></div>
+
+<script>
+    let scale = 5;
+
+    function updateUI() {
+        const bigL = document.getElementById('bigL').value;
+        const bigW = document.getElementById('bigW').value;
+        const smallL = document.getElementById('smallL').value;
+        const smallW = document.getElementById('smallW').value;
+
+        // 更新題目文字
+        const shapeName = bigL === bigW ? "正方形" : "長方形";
+        const tileSize = smallL === smallW ? `${smallL}cm 的正方形` : `長 ${smallL}cm 闊 ${smallW}cm 的長方形`;
+        
+        document.getElementById('questionBox').innerHTML = `
+            題目：一個<span class="dynamic-val">${shapeName}</span>長 <span class="dynamic-val">${bigL}</span> cm，
+            闊 <span class="dynamic-val">${bigW}</span> cm。如果鋪上邊長是 
+            <span class="dynamic-val">${tileSize}</span> 的方塊，需要方塊多少塊？
+        `;
+
+        // 更新零件標籤
+        document.getElementById('srcLabelW').innerText = smallL + 'cm';
+        document.getElementById('srcLabelH').innerText = smallW + 'cm';
+    }
+
+    function initWorkspace() {
+        updateUI();
+        const bigL = parseInt(document.getElementById('bigL').value);
+        const bigW = parseInt(document.getElementById('bigW').value);
+        const smallL = parseInt(document.getElementById('smallL').value);
+        const smallW = parseInt(document.getElementById('smallW').value);
+        const ws = document.getElementById('workspace');
+        const source = document.getElementById('tile-source');
+        const exp = document.getElementById('explanation');
+
+        exp.style.display = 'none';
+
+        // 動態調整比例 (適應螢幕)
+        scale = Math.min(600 / bigL, 350 / bigW, 12);
+        
+        ws.style.width = (bigL * scale) + 'px';
+        ws.style.height = (bigW * scale) + 'px';
+        ws.innerHTML = '';
+
+        source.style.width = (smallL * scale) + 'px';
+        source.style.height = (smallW * scale) + 'px';
+    }
+
+    // 拖放邏輯
+    const workspace = document.getElementById('workspace');
+    workspace.addEventListener('dragover', (e) => e.preventDefault());
+    workspace.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const bigL = parseInt(document.getElementById('bigL').value);
+        const bigW = parseInt(document.getElementById('bigW').value);
+        const smallL = parseInt(document.getElementById('smallL').value);
+        const smallW = parseInt(document.getElementById('smallW').value);
+
+        const rect = workspace.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const col = Math.floor(x / (smallL * scale));
+        const row = Math.floor(y / (smallW * scale));
+
+        // 檢查是否超出可鋪設範圍 (不顯示廢料，只是不給放)
+        if (col >= 0 && col < Math.floor(bigL/smallL) && row >= 0 && row < Math.floor(bigW/smallW)) {
+            addTile(col, row, smallL, smallW);
+        }
+    });
+
+    function addTile(col, row, sl, sw) {
+        const id = `tile-${col}-${row}`;
+        if (document.getElementById(id)) return;
+
+        const tile = document.createElement('div');
+        tile.id = id;
+        tile.className = 'placed-tile';
+        tile.style.left = (col * sl * scale) + 'px';
+        tile.style.top = (row * sw * scale) + 'px';
+        tile.style.width = (sl * scale) + 'px';
+        tile.style.height = (sw * scale) + 'px';
+        tile.innerText = ''; // 保持清爽
+        workspace.appendChild(tile);
+    }
+
+    function autoFill() {
+        const bigL = parseInt(document.getElementById('bigL').value);
+        const bigW = parseInt(document.getElementById('bigW').value);
+        const smallL = parseInt(document.getElementById('smallL').value);
+        const smallW = parseInt(document.getElementById('smallW').value);
+
+        const cols = Math.floor(bigL / smallL);
+        const rows = Math.floor(bigW / smallW);
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                addTile(c, r, smallL, smallW);
+            }
+        }
+        showExplanation(bigL, bigW, smallL, smallW, cols, rows);
+    }
+
+    function showExplanation(L, W, sl, sw, cols, rows) {
+        const exp = document.getElementById('explanation');
+        exp.style.display = 'block';
+        
+        const isRemainder = (L % sl !== 0) || (W % sw !== 0);
+        let remainderNote = isRemainder ? 
+            `<p style="color: #e67e22; font-size: 0.95em;">⚠️ 注意：你看到右邊或下面有灰色空位嗎？因為剩下的空間不夠放一整塊 ${sl}x${sw} 的方塊，所以不能計入數量。</p>` : "";
+
+        exp.innerHTML = `
+            <h2 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px;">解題思維分析</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <p><b>第一步：計算「長」邊可以排幾塊？</b></p>
+                    <p>${L}cm ÷ ${sl}cm = <span class="highlight">${cols}</span> 塊</p>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <p><b>第二步：計算「闊」邊可以排幾行？</b></p>
+                    <p>${W}cm ÷ ${sw}cm = <span class="highlight">${rows}</span> 行</p>
+                </div>
+            </div>
+            <div style="margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                <p><b>第三步：總共需要多少塊？</b></p>
+                <p style="font-size: 1.4em;">每一行有 ${cols} 塊，一共有 ${rows} 行：</p>
+                <p style="font-size: 2em; text-align: center; margin: 10px 0;">
+                    ${cols} × ${rows} = <span class="highlight" style="font-size: 1.2em;">${cols * rows}</span> 塊
+                </p>
+            </div>
+            ${remainderNote}
+        `;
+        exp.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 初始化
+    window.onload = initWorkspace;
+</script>
+
+</body>
+</html>
